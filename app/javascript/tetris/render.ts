@@ -1,4 +1,5 @@
 import { createField } from './field'
+
 import type { Figure, ArrDown } from './types'
 
 export function renderField(figure: Figure, arrDown: ArrDown): string[][] {

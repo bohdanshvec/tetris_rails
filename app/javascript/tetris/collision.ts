@@ -1,5 +1,4 @@
 import { MIN_X, MAX_X, MIN_Y, MAX_Y } from './config'
-
 import type { Figure, ArrDown, Coordinate } from './types'
 
 export function isInsideField(coord: Coordinate): boolean {

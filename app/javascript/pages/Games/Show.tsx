@@ -10,7 +10,6 @@ type ShowProps = {
 export default function Show({ game_id }: ShowProps) {
   const [game, setGame] = useState(() => createGame())
 
-  // Управление клавиатурой
   useEffect(() => {
     const handleKey = (event: KeyboardEvent) => {
       if (event.key === 'ArrowLeft') {
@@ -46,11 +45,10 @@ export default function Show({ game_id }: ShowProps) {
     }
   }, [])
 
-  // Автоматический игровой тик
   useEffect(() => {
     const interval = setInterval(() => {
       setGame((currentGame) => stepDown(currentGame))
-    }, 1000)
+    }, 300)
 
     return () => {
       clearInterval(interval)
@@ -63,7 +61,7 @@ export default function Show({ game_id }: ShowProps) {
     <div className="p-5">
       <h1 className="text-xl font-bold mb-4">Game TETRIS #{game_id}</h1>
 
-      <div className="inline-block border-4 border-green-500 bg-green-50 p-1">
+      <div className="relative inline-block border-4 border-green-500 bg-green-50 p-1">
         {field.map((row, y) => (
           <div key={y} className="flex">
             {row.map((cell, x) => (
@@ -80,6 +78,14 @@ export default function Show({ game_id }: ShowProps) {
             ))}
           </div>
         ))}
+
+        {game.gameOver && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+            <div className="bg-white px-6 py-4 rounded-lg text-xl font-bold text-red-600">
+              GAME OVER
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

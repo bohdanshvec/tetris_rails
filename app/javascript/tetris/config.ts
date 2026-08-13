@@ -1,10 +1,8 @@
-export const FIELD_WIDTH = 12
-export const FIELD_HEIGHT = 21
+export const FIELD_WIDTH = 10
+export const FIELD_HEIGHT = 20
 
-export const FIELD_WIDTH_GAMING = FIELD_WIDTH - 2
-export const FIELD_HEIGHT_GAMING = FIELD_HEIGHT - 1
+export const MIN_X = 0
+export const MAX_X = FIELD_WIDTH - 1
 
-export const MIN_X = 1
-export const MAX_X = 10
 export const MIN_Y = 0
-export const MAX_Y = 19
+export const MAX_Y = FIELD_HEIGHT - 1
