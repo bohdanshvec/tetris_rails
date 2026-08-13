@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, router } from '@inertiajs/react'
 import { createGame, dropFigure, stepDown } from '../../tetris/game'
 import { renderField } from '../../tetris/render'
@@ -15,8 +15,16 @@ type ShowProps = {
   speed: string
 }
 
-export default function Show({ game_id, speed }: ShowProps) {
-  const [game, setGame] = useState(() => createGame())
+  export default function Show({ game_id, speed }: ShowProps) {
+    const [game, setGame] = useState(() => createGame())
+    const finishSent = useRef(false)
+
+    useEffect(() => {
+      setGame(createGame())
+      finishSent.current = false
+    }, [game_id])
+
+    console.log('SHOW:', game_id, game.gameOver)
 
   // Управление клавиатурой
   useEffect(() => {
@@ -108,16 +116,26 @@ export default function Show({ game_id, speed }: ShowProps) {
       return
     }
 
+    if (finishSent.current) {
+      return
+    }
+
+    finishSent.current = true
+
     fetch(`/games/${game_id}/finish`, {
       method: 'POST',
       headers: {
-        'X-CSRF-Token': document
-          .querySelector('meta[name="csrf-token"]')
-          ?.getAttribute('content') || '',
+        'X-CSRF-Token':
+          document
+            .querySelector('meta[name="csrf-token"]')
+            ?.getAttribute('content') || '',
         'Content-Type': 'application/json',
       },
+      body: JSON.stringify({
+        speed: speed,
+      }),
     })
-  }, [game.gameOver, game_id])
+  }, [game.gameOver, game_id, speed])
 
   const field = renderField(game.figure, game.arrDown)
 

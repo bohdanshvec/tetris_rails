@@ -31,9 +31,11 @@ class GamesController < ApplicationController
 
   def finish
     game = Game.find(params[:id])
-    
-    game.touch
 
-    head :ok
+    game.update!(
+      speed: params[:speed]
+    )
+
+    head :no_content
   end
 end
