@@ -2,13 +2,20 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, router } from '@inertiajs/react'
 import { createGame, dropFigure, stepDown } from '../../tetris/game'
 import { renderField } from '../../tetris/render'
-import { moveLeft, moveRight, rotate } from '../../tetris/move'
+import {
+  moveDown,
+  moveLeft,
+  moveRight,
+  rotate,
+} from '../../tetris/move'
 
 const SPEED_INTERVALS = {
   low: 1000,
   mid: 600,
   high: 300,
 }
+
+const DROP_ANIMATION_INTERVAL = 40
 
 type ShowProps = {
   game_id: number
@@ -17,6 +24,7 @@ type ShowProps = {
 
 export default function Show({ game_id, speed }: ShowProps) {
   const [game, setGame] = useState(() => createGame())
+  const [isDropping, setIsDropping] = useState(false)
 
   const finishSent = useRef(false)
 
@@ -25,6 +33,7 @@ export default function Show({ game_id, speed }: ShowProps) {
 
   useEffect(() => {
     setGame(createGame())
+    setIsDropping(false)
     finishSent.current = false
     gameStartedAt.current = Date.now()
   }, [game_id])
@@ -40,7 +49,7 @@ export default function Show({ game_id, speed }: ShowProps) {
 
       if (event.key === 'ArrowLeft') {
         setGame((currentGame) => {
-          if (currentGame.gameOver) {
+          if (currentGame.gameOver || isDropping) {
             return currentGame
           }
 
@@ -52,11 +61,13 @@ export default function Show({ game_id, speed }: ShowProps) {
             ),
           }
         })
+
+        return
       }
 
       if (event.key === 'ArrowRight') {
         setGame((currentGame) => {
-          if (currentGame.gameOver) {
+          if (currentGame.gameOver || isDropping) {
             return currentGame
           }
 
@@ -68,21 +79,13 @@ export default function Show({ game_id, speed }: ShowProps) {
             ),
           }
         })
-      }
 
-      if (event.key === 'ArrowDown') {
-        setGame((currentGame) => {
-          if (currentGame.gameOver) {
-            return currentGame
-          }
-
-          return dropFigure(currentGame)
-        })
+        return
       }
 
       if (event.key === 'ArrowUp') {
         setGame((currentGame) => {
-          if (currentGame.gameOver) {
+          if (currentGame.gameOver || isDropping) {
             return currentGame
           }
 
@@ -94,6 +97,20 @@ export default function Show({ game_id, speed }: ShowProps) {
             ),
           }
         })
+
+        return
+      }
+
+      if (event.key === 'ArrowDown') {
+        if (isDropping) {
+          return
+        }
+
+        if (game.gameOver) {
+          return
+        }
+
+        setIsDropping(true)
       }
     }
 
@@ -102,11 +119,55 @@ export default function Show({ game_id, speed }: ShowProps) {
     return () => {
       document.removeEventListener('keydown', handleKey)
     }
-  }, [game_id])
+  }, [game_id, isDropping, game.gameOver])
+
+  // Анимация ускоренного падения
+  useEffect(() => {
+    if (!isDropping || game.gameOver) {
+      return
+    }
+
+    const interval = window.setInterval(() => {
+      setGame((currentGame) => {
+        if (currentGame.gameOver) {
+          window.clearInterval(interval)
+          setIsDropping(false)
+
+          return currentGame
+        }
+
+        const movedFigure = moveDown(
+          currentGame.figure,
+          currentGame.arrDown,
+        )
+
+        // Фигура смогла опуститься на одну клетку
+        if (movedFigure !== currentGame.figure) {
+          return {
+            ...currentGame,
+            figure: movedFigure,
+          }
+        }
+
+        // Ниже двигаться нельзя.
+        // Фиксируем фигуру и создаём новую.
+        const newGame = dropFigure(currentGame)
+
+        window.clearInterval(interval)
+        setIsDropping(false)
+
+        return newGame
+      })
+    }, DROP_ANIMATION_INTERVAL)
+
+    return () => {
+      window.clearInterval(interval)
+    }
+  }, [isDropping, game.gameOver])
 
   // Автоматический игровой тик
   useEffect(() => {
-    if (game.gameOver) {
+    if (game.gameOver || isDropping) {
       return
     }
 
@@ -120,7 +181,7 @@ export default function Show({ game_id, speed }: ShowProps) {
     return () => {
       clearInterval(interval)
     }
-  }, [speed, game.gameOver])
+  }, [speed, game.gameOver, isDropping])
 
   // Сообщаем Rails, что игра завершилась
   useEffect(() => {
@@ -167,8 +228,10 @@ export default function Show({ game_id, speed }: ShowProps) {
       <p className="mb-4">Lines: {game.lines}</p>
 
       <div className="flex items-start gap-5">
+
         {/* Игровое поле */}
         <div className="relative inline-block border-4 border-green-500 bg-green-50 p-1">
+
           {field.map((row, y) => (
             <div key={y} className="flex">
               {row.map((cell, x) => (
@@ -197,6 +260,7 @@ export default function Show({ game_id, speed }: ShowProps) {
 
         {/* Кнопки справа */}
         <div className="flex flex-col gap-3">
+
           {game.gameOver && (
             <>
               <Link
@@ -235,6 +299,7 @@ export default function Show({ game_id, speed }: ShowProps) {
           >
             Exit
           </Link>
+
         </div>
       </div>
     </div>
