@@ -9,6 +9,7 @@ export type GameState = {
   arrDown: ArrDown
   gameOver: boolean
   lines: number
+  clearingRows: number[]
 }
 
 export function createGame(): GameState {
@@ -17,11 +18,18 @@ export function createGame(): GameState {
     arrDown: [],
     gameOver: false,
     lines: 0,
+    clearingRows: [],
   }
 }
 
 export function stepDown(game: GameState): GameState {
   if (game.gameOver) {
+    return game
+  }
+
+  // Если сейчас идёт анимация удаления строк,
+  // ничего не делаем.
+  if (game.clearingRows.length > 0) {
     return game
   }
 
@@ -41,15 +49,27 @@ export function stepDown(game: GameState): GameState {
 
   const fullRows = getFullRows(newArrDown)
 
-  const clearedArrDown = clearFullRows(newArrDown)
+  // Если есть заполненные строки,
+  // пока НЕ удаляем их.
+  if (fullRows.length > 0) {
+    return {
+      ...game,
+      figure: createFigure(),
+      arrDown: newArrDown,
+      clearingRows: fullRows,
+      lines: game.lines + fullRows.length,
+    }
+  }
 
-  const gameOver = clearedArrDown.some((coord) => coord.y === 0)
+  const gameOver = newArrDown.some(
+    (coord) => coord.y === 0,
+  )
 
   return {
+    ...game,
     figure: createFigure(),
-    arrDown: clearedArrDown,
+    arrDown: newArrDown,
     gameOver,
-    lines: game.lines + fullRows.length,
   }
 }
 
@@ -58,20 +78,61 @@ export function dropFigure(game: GameState): GameState {
     return game
   }
 
-  const droppedFigure = dropDown(game.figure, game.arrDown)
+  if (game.clearingRows.length > 0) {
+    return game
+  }
 
-  const newArrDown = [...game.arrDown, ...droppedFigure]
+  const droppedFigure = dropDown(
+    game.figure,
+    game.arrDown,
+  )
+
+  const newArrDown = [
+    ...game.arrDown,
+    ...droppedFigure,
+  ]
 
   const fullRows = getFullRows(newArrDown)
 
-  const clearedArrDown = clearFullRows(newArrDown)
+  // Если есть заполненные строки,
+  // ждём окончания анимации.
+  if (fullRows.length > 0) {
+    return {
+      ...game,
+      figure: createFigure(),
+      arrDown: newArrDown,
+      clearingRows: fullRows,
+      lines: game.lines + fullRows.length,
+    }
+  }
 
-  const gameOver = clearedArrDown.some((coord) => coord.y === 0)
+  const gameOver = newArrDown.some(
+    (coord) => coord.y === 0,
+  )
 
   return {
+    ...game,
     figure: createFigure(),
-    arrDown: clearedArrDown,
+    arrDown: newArrDown,
     gameOver,
-    lines: game.lines + fullRows.length,
+  }
+}
+
+export function finishClearing(game: GameState): GameState {
+  if (game.clearingRows.length === 0) {
+    return game
+  }
+
+  const clearedArrDown = clearFullRows(game.arrDown)
+
+  const gameOver = clearedArrDown.some(
+    (coord) => coord.y === 0,
+  )
+
+  return {
+    ...game,
+    arrDown: clearedArrDown,
+    clearingRows: [],
+    gameOver,
   }
 }

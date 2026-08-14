@@ -22,7 +22,9 @@ export function getFullRows(arrDown: ArrDown): number[] {
   const fullRows: number[] = []
 
   for (let y = 0; y < FIELD_HEIGHT; y++) {
-    const blocksInRow = arrDown.filter((coord) => coord.y === y).length
+    const blocksInRow = arrDown.filter(
+      (coord) => coord.y === y,
+    ).length
 
     if (blocksInRow === FIELD_WIDTH) {
       fullRows.push(y)
@@ -39,10 +41,14 @@ export function clearFullRows(arrDown: ArrDown): ArrDown {
     return arrDown
   }
 
-  const remainingBlocks = arrDown.filter((coord) => !fullRows.includes(coord.y))
+  const remainingBlocks = arrDown.filter(
+    (coord) => !fullRows.includes(coord.y),
+  )
 
   return remainingBlocks.map((coord) => {
-    const rowsBelow = fullRows.filter((row) => row > coord.y).length
+    const rowsBelow = fullRows.filter(
+      (row) => row > coord.y,
+    ).length
 
     return {
       x: coord.x,

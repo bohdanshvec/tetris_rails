@@ -2,10 +2,17 @@ import { Link } from '@inertiajs/react'
 
 export default function Index() {
   return (
-    <div className="p-5">
+    <div className="p-10">
       <h1 className="text-2xl font-bold">Game TETRIS</h1>
-
-      <br />
+			<p className="text-lg text-gray-600 py-1">Controlling the game with buttons ↑ , ↓ , ← , →</p>
+			<p className="text-lg text-gray-600">Esc - Exit Game</p>
+      <div className="mt-4 mb-5 py-4">
+        <img
+          src="/images/tetris.jpeg"
+          alt="Tetris"
+          className="w-96 rounded-lg shadow"
+        />
+      </div>
 
       <h2 className="text-lg mb-3">Choose speed:</h2>
 
