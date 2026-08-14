@@ -1,13 +1,14 @@
 import { createFigure } from './figures'
 import { hasCollision } from './collision'
 import { dropDown } from './move'
-import { clearFullRows } from './field'
+import { clearFullRows, getFullRows } from './field'
 import type { Figure, ArrDown } from './types'
 
 export type GameState = {
   figure: Figure
   arrDown: ArrDown
   gameOver: boolean
+  lines: number
 }
 
 export function createGame(): GameState {
@@ -15,6 +16,7 @@ export function createGame(): GameState {
     figure: createFigure(),
     arrDown: [],
     gameOver: false,
+    lines: 0,
   }
 }
 
@@ -36,6 +38,9 @@ export function stepDown(game: GameState): GameState {
   }
 
   const newArrDown = [...game.arrDown, ...game.figure]
+
+  const fullRows = getFullRows(newArrDown)
+
   const clearedArrDown = clearFullRows(newArrDown)
 
   const gameOver = clearedArrDown.some((coord) => coord.y === 0)
@@ -44,6 +49,7 @@ export function stepDown(game: GameState): GameState {
     figure: createFigure(),
     arrDown: clearedArrDown,
     gameOver,
+    lines: game.lines + fullRows.length,
   }
 }
 
@@ -56,6 +62,8 @@ export function dropFigure(game: GameState): GameState {
 
   const newArrDown = [...game.arrDown, ...droppedFigure]
 
+  const fullRows = getFullRows(newArrDown)
+
   const clearedArrDown = clearFullRows(newArrDown)
 
   const gameOver = clearedArrDown.some((coord) => coord.y === 0)
@@ -64,5 +72,6 @@ export function dropFigure(game: GameState): GameState {
     figure: createFigure(),
     arrDown: clearedArrDown,
     gameOver,
+    lines: game.lines + fullRows.length,
   }
 }

@@ -33,7 +33,9 @@ class GamesController < ApplicationController
     game = Game.find(params[:id])
 
     game.update!(
-      speed: params[:speed]
+      speed: params[:speed],
+      lines: params[:lines],
+      duration: params[:duration]
     )
 
     head :no_content

@@ -18,7 +18,7 @@ export function createField(): string[][] {
   return field
 }
 
-export function clearFullRows(arrDown: ArrDown): ArrDown {
+export function getFullRows(arrDown: ArrDown): number[] {
   const fullRows: number[] = []
 
   for (let y = 0; y < FIELD_HEIGHT; y++) {
@@ -28,6 +28,12 @@ export function clearFullRows(arrDown: ArrDown): ArrDown {
       fullRows.push(y)
     }
   }
+
+  return fullRows
+}
+
+export function clearFullRows(arrDown: ArrDown): ArrDown {
+  const fullRows = getFullRows(arrDown)
 
   if (fullRows.length === 0) {
     return arrDown

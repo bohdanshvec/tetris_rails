@@ -15,16 +15,19 @@ type ShowProps = {
   speed: string
 }
 
-  export default function Show({ game_id, speed }: ShowProps) {
-    const [game, setGame] = useState(() => createGame())
-    const finishSent = useRef(false)
+export default function Show({ game_id, speed }: ShowProps) {
+  const [game, setGame] = useState(() => createGame())
 
-    useEffect(() => {
-      setGame(createGame())
-      finishSent.current = false
-    }, [game_id])
+  const finishSent = useRef(false)
 
-    console.log('SHOW:', game_id, game.gameOver)
+  // Время начала текущей игры
+  const gameStartedAt = useRef(Date.now())
+
+  useEffect(() => {
+    setGame(createGame())
+    finishSent.current = false
+    gameStartedAt.current = Date.now()
+  }, [game_id])
 
   // Управление клавиатурой
   useEffect(() => {
@@ -43,7 +46,10 @@ type ShowProps = {
 
           return {
             ...currentGame,
-            figure: moveLeft(currentGame.figure, currentGame.arrDown),
+            figure: moveLeft(
+              currentGame.figure,
+              currentGame.arrDown,
+            ),
           }
         })
       }
@@ -56,7 +62,10 @@ type ShowProps = {
 
           return {
             ...currentGame,
-            figure: moveRight(currentGame.figure, currentGame.arrDown),
+            figure: moveRight(
+              currentGame.figure,
+              currentGame.arrDown,
+            ),
           }
         })
       }
@@ -79,7 +88,10 @@ type ShowProps = {
 
           return {
             ...currentGame,
-            figure: rotate(currentGame.figure, currentGame.arrDown),
+            figure: rotate(
+              currentGame.figure,
+              currentGame.arrDown,
+            ),
           }
         })
       }
@@ -122,6 +134,10 @@ type ShowProps = {
 
     finishSent.current = true
 
+    const duration = Math.floor(
+      (Date.now() - gameStartedAt.current) / 1000,
+    )
+
     fetch(`/games/${game_id}/finish`, {
       method: 'POST',
       headers: {
@@ -132,18 +148,23 @@ type ShowProps = {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        speed: speed,
+        speed,
+        lines: game.lines,
+        duration,
       }),
     })
-  }, [game.gameOver, game_id, speed])
+  }, [game.gameOver, game_id, speed, game.lines])
 
   const field = renderField(game.figure, game.arrDown)
 
   return (
     <div className="p-5">
-      <h1 className="text-xl font-bold mb-4">Game TETRIS #{game_id}</h1>
+      <h1 className="text-xl font-bold mb-4">
+        Game TETRIS #{game_id}
+      </h1>
 
       <p className="mb-4">Speed: {speed}</p>
+      <p className="mb-4">Lines: {game.lines}</p>
 
       <div className="flex items-start gap-5">
         {/* Игровое поле */}
