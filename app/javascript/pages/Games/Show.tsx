@@ -13,7 +13,13 @@ export default function Show({
   game_id,
   speed,
 }: ShowProps) {
-  const { game, duration, handleControl } = useTetrisGame(
+  const {
+    game,
+    duration,
+    handleControl,
+    isPaused,
+    togglePause,
+  } = useTetrisGame(
     game_id,
     speed,
   )
@@ -49,6 +55,8 @@ export default function Show({
           <GameControls
             gameId={game_id}
             gameOver={game.gameOver}
+            isPaused={isPaused}
+            onTogglePause={togglePause}
           />
 
           {game.gameOver && (

@@ -3,11 +3,15 @@ import { Link } from '@inertiajs/react'
 type GameControlsProps = {
   gameId: number
   gameOver: boolean
+  isPaused: boolean
+  onTogglePause: () => void
 }
 
 export default function GameControls({
   gameId,
   gameOver,
+  isPaused,
+  onTogglePause,
 }: GameControlsProps) {
   return (
     <div className="flex flex-col gap-3">
@@ -57,6 +61,24 @@ export default function GameControls({
         >
           Exit
         </Link>
+      )}
+
+      {!gameOver && (
+        <>
+          <button
+            type="button"
+            onClick={onTogglePause}
+            className="px-4 py-2 bg-yellow-500 text-white font-semibold rounded-lg shadow text-center"
+          >
+            Pause
+          </button>
+
+          {isPaused && (
+            <p className="-mt-2 text-center text-red-500">
+              Game stopped
+            </p>
+          )}
+        </>
       )}
     </div>
   )

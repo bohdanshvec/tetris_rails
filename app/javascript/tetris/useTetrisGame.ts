@@ -31,20 +31,49 @@ export function useTetrisGame(
 ) {
   const [game, setGame] = useState(() => createGame())
   const [isDropping, setIsDropping] = useState(false)
+  const [isPaused, setIsPaused] = useState(false)
 
   const finishSent = useRef(false)
 
   const gameStartedAt = useRef(Date.now())
+  const elapsedDuration = useRef(0)
+  const isPausedRef = useRef(false)
 
   useEffect(() => {
     setGame(createGame())
     setIsDropping(false)
+    setIsPaused(false)
 
     finishSent.current = false
     gameStartedAt.current = Date.now()
+    elapsedDuration.current = 0
+    isPausedRef.current = false
   }, [gameId])
 
+  const togglePause = () => {
+    if (game.gameOver) {
+      return
+    }
+
+    const nextIsPaused = !isPausedRef.current
+
+    if (nextIsPaused) {
+      elapsedDuration.current +=
+        Date.now() - gameStartedAt.current
+      setIsDropping(false)
+    } else {
+      gameStartedAt.current = Date.now()
+    }
+
+    isPausedRef.current = nextIsPaused
+    setIsPaused(nextIsPaused)
+  }
+
   const handleControl = (control: GameControl) => {
+    if (isPaused) {
+      return
+    }
+
     // Во время удаления строк управление отключено
     if (game.clearingRows.length > 0) {
       return
@@ -131,6 +160,14 @@ export function useTetrisGame(
         return
       }
 
+      if (event.key.toLowerCase() === 'p') {
+        if (!event.repeat) {
+          togglePause()
+        }
+
+        return
+      }
+
       const controls: Record<string, GameControl> = {
         ArrowLeft: 'left',
         ArrowDown: 'down',
@@ -153,13 +190,14 @@ export function useTetrisGame(
   }, [
     gameId,
     isDropping,
+    isPaused,
     game.gameOver,
     game.clearingRows,
   ])
 
   // Анимация удаления заполненных строк
   useEffect(() => {
-    if (game.clearingRows.length === 0) {
+    if (game.clearingRows.length === 0 || isPaused) {
       return
     }
 
@@ -172,12 +210,13 @@ export function useTetrisGame(
     return () => {
       window.clearTimeout(timeout)
     }
-  }, [game.clearingRows])
+  }, [game.clearingRows, isPaused])
 
   // Анимация ускоренного падения
   useEffect(() => {
     if (
       !isDropping ||
+      isPaused ||
       game.gameOver ||
       game.clearingRows.length > 0
     ) {
@@ -229,6 +268,7 @@ export function useTetrisGame(
     }
   }, [
     isDropping,
+    isPaused,
     game.gameOver,
     game.clearingRows,
   ])
@@ -238,6 +278,7 @@ export function useTetrisGame(
     if (
       game.gameOver ||
       isDropping ||
+      isPaused ||
       game.clearingRows.length > 0
     ) {
       return
@@ -261,6 +302,7 @@ export function useTetrisGame(
     speed,
     game.gameOver,
     isDropping,
+    isPaused,
     game.clearingRows,
   ])
 
@@ -277,7 +319,8 @@ export function useTetrisGame(
     finishSent.current = true
 
     const duration = Math.floor(
-      (Date.now() - gameStartedAt.current) / 1000,
+      (elapsedDuration.current +
+        Date.now() - gameStartedAt.current) / 1000,
     )
 
     finishGame({
@@ -294,12 +337,15 @@ export function useTetrisGame(
   ])
 
   const duration = Math.floor(
-    (Date.now() - gameStartedAt.current) / 1000,
+    (elapsedDuration.current +
+      (isPaused ? 0 : Date.now() - gameStartedAt.current)) / 1000,
   )
 
   return {
     game,
     duration,
     handleControl,
+    isPaused,
+    togglePause,
   }
 }

@@ -5,7 +5,9 @@ export default function Index() {
     <div className="p-10">
       <h1 className="text-2xl font-bold">Game TETRIS</h1>
 			<p className="text-lg text-gray-600 py-1">Controlling the game with buttons ↑ , ↓ , ← , →</p>
-			<p className="text-lg text-gray-600">Esc - Exit Game</p>
+			<p className="text-lg text-gray-600">
+				Esc - Exit Game <span className="ml-20">P - Pause</span>
+			</p>
       <div className="mt-4 mb-5 py-4">
         <img
           src="/images/tetris.jpeg"
