@@ -2,6 +2,7 @@ import { useTetrisGame } from '../../tetris/useTetrisGame'
 import GameField from './components/GameField'
 import GameControls from './components/GameControls'
 import GameResult from './components/GameResult'
+import MobileGameControls from './components/MobileGameControls'
 
 type ShowProps = {
   game_id: number
@@ -12,7 +13,7 @@ export default function Show({
   game_id,
   speed,
 }: ShowProps) {
-  const { game, duration } = useTetrisGame(
+  const { game, duration, handleControl } = useTetrisGame(
     game_id,
     speed,
   )
@@ -35,7 +36,13 @@ export default function Show({
 
       <div className="flex items-start gap-5">
         {/* Игровое поле */}
-        <GameField game={game} />
+        <div className="flex flex-col items-start">
+          <GameField game={game} />
+
+          <MobileGameControls
+            onControl={handleControl}
+          />
+        </div>
 
         {/* Управление и результат */}
         <div className="flex flex-col">

@@ -19,6 +19,12 @@ import {
 } from './config'
 import { finishGame } from './api'
 
+export type GameControl =
+  | 'left'
+  | 'down'
+  | 'right'
+  | 'up'
+
 export function useTetrisGame(
   gameId: number,
   speed: string,
@@ -38,6 +44,79 @@ export function useTetrisGame(
     gameStartedAt.current = Date.now()
   }, [gameId])
 
+  const handleControl = (control: GameControl) => {
+    // Во время удаления строк управление отключено
+    if (game.clearingRows.length > 0) {
+      return
+    }
+
+    // Влево
+    if (control === 'left') {
+      setGame((currentGame) => {
+        if (currentGame.gameOver || isDropping) {
+          return currentGame
+        }
+
+        return {
+          ...currentGame,
+          figure: moveLeft(
+            currentGame.figure,
+            currentGame.arrDown,
+          ),
+        }
+      })
+
+      return
+    }
+
+    // Вправо
+    if (control === 'right') {
+      setGame((currentGame) => {
+        if (currentGame.gameOver || isDropping) {
+          return currentGame
+        }
+
+        return {
+          ...currentGame,
+          figure: moveRight(
+            currentGame.figure,
+            currentGame.arrDown,
+          ),
+        }
+      })
+
+      return
+    }
+
+    // Поворот
+    if (control === 'up') {
+      setGame((currentGame) => {
+        if (currentGame.gameOver || isDropping) {
+          return currentGame
+        }
+
+        return {
+          ...currentGame,
+          figure: rotate(
+            currentGame.figure,
+            currentGame.arrDown,
+          ),
+        }
+      })
+
+      return
+    }
+
+    // Ускоренное падение
+    if (control === 'down') {
+      if (isDropping || game.gameOver) {
+        return
+      }
+
+      setIsDropping(true)
+    }
+  }
+
   // Управление клавиатурой
   useEffect(() => {
     const handleKey = (event: KeyboardEvent) => {
@@ -52,79 +131,17 @@ export function useTetrisGame(
         return
       }
 
-      // Во время удаления строк управление отключено
-      if (game.clearingRows.length > 0) {
-        return
+      const controls: Record<string, GameControl> = {
+        ArrowLeft: 'left',
+        ArrowDown: 'down',
+        ArrowRight: 'right',
+        ArrowUp: 'up',
       }
 
-      // Влево
-      if (event.key === 'ArrowLeft') {
-        setGame((currentGame) => {
-          if (currentGame.gameOver || isDropping) {
-            return currentGame
-          }
+      const control = controls[event.key]
 
-          return {
-            ...currentGame,
-            figure: moveLeft(
-              currentGame.figure,
-              currentGame.arrDown,
-            ),
-          }
-        })
-
-        return
-      }
-
-      // Вправо
-      if (event.key === 'ArrowRight') {
-        setGame((currentGame) => {
-          if (currentGame.gameOver || isDropping) {
-            return currentGame
-          }
-
-          return {
-            ...currentGame,
-            figure: moveRight(
-              currentGame.figure,
-              currentGame.arrDown,
-            ),
-          }
-        })
-
-        return
-      }
-
-      // Поворот
-      if (event.key === 'ArrowUp') {
-        setGame((currentGame) => {
-          if (currentGame.gameOver || isDropping) {
-            return currentGame
-          }
-
-          return {
-            ...currentGame,
-            figure: rotate(
-              currentGame.figure,
-              currentGame.arrDown,
-            ),
-          }
-        })
-
-        return
-      }
-
-      // Ускоренное падение
-      if (event.key === 'ArrowDown') {
-        if (isDropping) {
-          return
-        }
-
-        if (game.gameOver) {
-          return
-        }
-
-        setIsDropping(true)
+      if (control) {
+        handleControl(control)
       }
     }
 
@@ -283,5 +300,6 @@ export function useTetrisGame(
   return {
     game,
     duration,
+    handleControl,
   }
 }
